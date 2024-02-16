@@ -5,6 +5,8 @@ const app = new Hono();
 
 // use default KV settings if using Deno Deploy, otherwise use a persistent sqlite database
 const deployed = Deno.env.has("DENO_DEPLOYMENT_ID");
+// use 7070 as default, support override as PORT envvar
+const PORT = Deno.env.has("PORT") ? Deno.env.get("PORT") : "7070";
 
 // restore if not using Deno Deploy
 const restore = deployed ? null : new Deno.Command("litestream", {args: "restore -o /tmp/denokv.sqlite3 s3://denokv.localhost:9000/denokv.sqlite3".split(" ")}).outputSync();
@@ -69,6 +71,5 @@ app.post("/:key", async (c) => {
   return c.json(result);
 });
 
-
-Deno.serve(app.fetch);
+Deno.serve({ port: parseInt(PORT), hostname: "0.0.0.0"}, app.fetch);
 
