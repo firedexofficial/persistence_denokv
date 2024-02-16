@@ -17,6 +17,18 @@ const kv = deployed ?  await Deno.openKv() : await Deno.openKv("/tmp/denokv.sqli
 // enable streaming replication if not using Deno Deploy
 const backup = deployed ? null : new Deno.Command("litestream", {args: "replicate /tmp/denokv.sqlite3 s3://denokv.localhost:9000/denokv.sqlite3".split(" ")}).spawn();
 
+async function getCount() {
+    const all_known_keys = kv.list({prefix: ["openkv"]});
+    const output = [];
+    for await (const res of all_known_keys) {
+        output.push(res.value);
+    };
+    console.log("We have restored: " + output.length + " keys.");
+    return output.length
+}
+
+getCount();
+
 const checkAuth = (c: Context) =>
     c.req.headers.get('Authorization') === Deno.env.get("KVSTORE_SECRET");
 
@@ -37,8 +49,12 @@ app.get("/headers", async (c) => {
 
 app.get("/:key", async (c) => {
   const key = c.req.param("key");
-  const result = await kv.get([key], { consistency: "strong" });
+  const result = await kv.get(["openkv", key], { consistency: "strong" });
   return c.text(result.value);
+});
+
+app.get("/count", async (c) => {
+  return c.text(await getCount());
 });
 
 // TODO: disable the next few methods in Prod
@@ -67,7 +83,7 @@ app.post("/exec", async (c) => {
 
 app.post("/:key", async (c) => {
   const key = c.req.param("key");
-  const result = await kv.set([key], await c.req.text());
+  const result = await kv.set(["openkv", key], await c.req.text());
   return c.json(result);
 });
 
