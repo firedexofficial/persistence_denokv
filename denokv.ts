@@ -18,7 +18,7 @@ const kv = deployed ?  await Deno.openKv() : await Deno.openKv("/tmp/denokv.sqli
 const backup = deployed ? null : new Deno.Command("litestream", {args: "replicate /tmp/denokv.sqlite3 s3://denokv.localhost:9000/denokv.sqlite3".split(" ")}).spawn();
 
 async function getCount() {
-    const all_known_keys = kv.list({prefix: ["openkv"]});
+    const all_known_keys = kv.list({prefix: []});
     const output = [];
     for await (const res of all_known_keys) {
         output.push(res.value);
@@ -49,7 +49,7 @@ app.get("/headers", async (c) => {
 
 app.get("/:key", async (c) => {
   const key = c.req.param("key");
-  const result = await kv.get(["openkv", key], { consistency: "strong" });
+  const result = await kv.get([key], { consistency: "strong" });
   return c.text(result.value);
 });
 
@@ -83,7 +83,7 @@ app.post("/exec", async (c) => {
 
 app.post("/:key", async (c) => {
   const key = c.req.param("key");
-  const result = await kv.set(["openkv", key], await c.req.text());
+  const result = await kv.set([key], await c.req.text());
   return c.json(result);
 });
 
