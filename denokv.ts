@@ -9,13 +9,13 @@ const deployed = Deno.env.has("DENO_DEPLOYMENT_ID");
 const PORT = Deno.env.has("PORT") ? Deno.env.get("PORT") : "7070";
 
 // restore if not using Deno Deploy
-const restore = deployed ? null : new Deno.Command("litestream", {args: "restore -o /tmp/denokv.sqlite3 s3://denokv.localhost:9000/denokv.sqlite3".split(" ")}).outputSync();
+const restore = deployed ? null : new Deno.Command("litestream", {args: `restore -config /app/litestream.yaml`.split(" ")}).outputSync();
 
 // use sqlite if not using Deno Deploy
 const kv = deployed ?  await Deno.openKv() : await Deno.openKv("/tmp/denokv.sqlite3");
 
 // enable streaming replication if not using Deno Deploy
-const backup = deployed ? null : new Deno.Command("litestream", {args: "replicate /tmp/denokv.sqlite3 s3://denokv.localhost:9000/denokv.sqlite3".split(" ")}).spawn();
+const backup = deployed ? null : new Deno.Command("litestream", {args: `replicate -config /app/litestream.yaml`.split(" ")}).spawn();
 
 async function getCount() {
     const all_known_keys = kv.list({prefix: []});

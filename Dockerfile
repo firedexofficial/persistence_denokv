@@ -12,7 +12,8 @@ env LITESTREAM_ACCESS_KEY_ID=minioadmin
 env LITESTREAM_SECRET_ACCESS_KEY=minioadmin
 env KVSTORE_SECRET=denorocks
 
-COPY denokv.ts .
+COPY denokv.ts /app/
+COPY litestream.yaml /app/
 
 RUN deno cache denokv.ts
 

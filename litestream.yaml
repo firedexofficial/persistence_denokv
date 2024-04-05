@@ -1,0 +1,8 @@
+dbs:
+  - path: /tmp/denokv.sqlite3
+    replicas:
+      - type: s3
+        bucket: denokv
+        path: db
+        endpoint: ${MINIO_URL}
+        forcePathStyle: true
